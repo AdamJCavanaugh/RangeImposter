@@ -41,6 +41,7 @@ class RangeImposterGame {
     this.assignQuestions();
     this.renderGrid();
     document.getElementById('showAnswersBtn').classList.add('hidden');
+    document.getElementById('shareCodeBtn').classList.add('hidden');
   }
 
   selectQuestions() {
@@ -89,6 +90,7 @@ class RangeImposterGame {
   checkAllSubmitted() {
     if (Object.keys(this.answers).length === this.players.length) {
       document.getElementById('showAnswersBtn').classList.remove('hidden');
+      document.getElementById('shareCodeBtn').classList.remove('hidden');
     }
   }
 
@@ -115,38 +117,45 @@ class RangeImposterGame {
     }
   }
 
+  shareCode() {
+    const qrContainer = document.getElementById("qrContainer");
+    if (!qrContainer) return console.error("QR container not found!");
+
+    const shareURL = `show.html?data=${encodeURIComponent(
+      btoa(JSON.stringify(
+        this.players.map(name => ({
+          name,
+          question: this.questionMap[name],
+          answer: this.answers[name]?.number || null
+        }))
+      ))
+    )}`;
+
+    qrContainer.innerHTML = "";
+    const link = document.createElement("a");
+    link.href = shareURL;
+    link.textContent = "View Shared Answers";
+    link.target = "_blank";
+    link.style.display = "inline-block";
+    link.style.marginTop = "1em";
+    link.style.fontWeight = "bold";
+    qrContainer.appendChild(link);
+  }
+
   revealQuestions() {
+    document.getElementById('game').classList.add('hidden');
+    document.getElementById('answers').classList.remove('hidden');
+
     const grid = document.getElementById('answerGrid');
     grid.innerHTML = '';
 
-    const aColumn = document.createElement('div');
-    const bColumn = document.createElement('div');
-    aColumn.className = 'column';
-    bColumn.className = 'column';
+    const data = this.players.map(name => ({
+      name,
+      question: this.questionMap[name],
+      answer: this.answers[name]?.number || '—'
+    }));
 
-    const aHeader = document.createElement('h3');
-    aHeader.textContent = `Question A: ${this.questionA}`;
-    const bHeader = document.createElement('h3');
-    bHeader.textContent = `Question B: ${this.questionB}`;
-
-    aColumn.appendChild(aHeader);
-    bColumn.appendChild(bHeader);
-
-    this.players.forEach(name => {
-      const answer = this.answers[name]?.number || '—';
-      const entry = document.createElement('div');
-      entry.className = 'entry';
-      entry.textContent = `${name}: ${answer}`;
-
-      if (this.questionMap[name] === this.questionA) {
-        aColumn.appendChild(entry);
-      } else {
-        bColumn.appendChild(entry);
-      }
-    });
-
-    grid.appendChild(aColumn);
-    grid.appendChild(bColumn);
+    renderAnswers(data, "answerGrid", questionLabels);
 
     if (!document.getElementById('nextRoundBtn')) {
       const nextBtn = document.createElement('button');
@@ -162,7 +171,8 @@ class RangeImposterGame {
       document.getElementById('answers').appendChild(restartBtn);
     }
 
-    document.getElementById('revealBtn').classList.add('hidden');
+    const revealBtn = document.getElementById('revealBtn');
+    if (revealBtn) revealBtn.classList.add('hidden');
   }
 
   restartGame() {
