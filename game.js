@@ -3,7 +3,7 @@ class RangeImposterGame {
     this.players = [];
     this.answers = {};
     this.questionMap = {};
-    this.questionPairs = questionPairs;
+    this.questions = questions;
 
     document.getElementById('nameInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') this.addPlayer();
@@ -37,11 +37,16 @@ class RangeImposterGame {
     document.getElementById('game').classList.remove('hidden');
 
     this.answers = {};
-    this.currentPair = this.questionPairs[Math.floor(Math.random() * this.questionPairs.length)];
-
+    this.selectQuestions();
     this.assignQuestions();
     this.renderGrid();
     document.getElementById('showAnswersBtn').classList.add('hidden');
+  }
+
+  selectQuestions() {
+    const shuffled = [...this.questions].sort(() => 0.5 - Math.random());
+    this.questionA = shuffled[0];
+    this.questionB = shuffled[1];
   }
 
   assignQuestions() {
@@ -54,7 +59,7 @@ class RangeImposterGame {
     const bGroup = new Set(shuffled.slice(0, bCount));
 
     this.players.forEach(name => {
-      this.questionMap[name] = bGroup.has(name) ? 'B' : 'A';
+      this.questionMap[name] = bGroup.has(name) ? this.questionB : this.questionA;
     });
   }
 
@@ -71,9 +76,8 @@ class RangeImposterGame {
   }
 
   openAnswerPrompt(name, element) {
-    const type = this.questionMap[name];
-    const questionText = this.currentPair[type.toLowerCase()];
-    const number = prompt(`Question ${type}: ${questionText}\nEnter your number:`);
+    const questionText = this.questionMap[name];
+    const number = prompt(`${questionText}\nEnter your number:`);
 
     if (number !== null && number.trim() !== '') {
       this.answers[name] = { number: number.trim() };
@@ -121,9 +125,9 @@ class RangeImposterGame {
     bColumn.className = 'column';
 
     const aHeader = document.createElement('h3');
-    aHeader.textContent = `Question A: ${this.currentPair.a}`;
+    aHeader.textContent = `Question A: ${this.questionA}`;
     const bHeader = document.createElement('h3');
-    bHeader.textContent = `Question B: ${this.currentPair.b}`;
+    bHeader.textContent = `Question B: ${this.questionB}`;
 
     aColumn.appendChild(aHeader);
     bColumn.appendChild(bHeader);
@@ -134,7 +138,7 @@ class RangeImposterGame {
       entry.className = 'entry';
       entry.textContent = `${name}: ${answer}`;
 
-      if (this.questionMap[name] === 'A') {
+      if (this.questionMap[name] === this.questionA) {
         aColumn.appendChild(entry);
       } else {
         bColumn.appendChild(entry);
@@ -170,7 +174,6 @@ class RangeImposterGame {
     document.getElementById('answers').classList.add('hidden');
     document.getElementById('setup').classList.remove('hidden');
 
-    // Remove buttons if restarting
     ['revealBtn', 'nextRoundBtn', 'restartBtn'].forEach(id => {
       const btn = document.getElementById(id);
       if (btn) btn.remove();
