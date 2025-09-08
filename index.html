@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Range Imposter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <h1>Range Imposter</h1>
+
+  <div id="setup">
+    <input type="text" id="nameInput" placeholder="Enter player name">
+    <button onclick="game.addPlayer()">Add Player</button>
+    <div id="nameList"></div>
+    <button onclick="game.startGame()">Begin Game</button>
+  </div>
+
+  <div id="game" class="hidden">
+    <h2>Click Your Name to Answer</h2>
+    <div id="playerGrid" class="grid"></div>
+    <button id="showAnswersBtn" class="hidden" onclick="game.showAnswers()">Show Answers</button>
+  </div>
+
+  <div id="answers" class="hidden">
+    <h2>Answers Revealed</h2>
+    <div id="answerGrid"></div>
+  </div>
+
+  <script src="questions.js"></script>
+  <script src="game.js"></script>
+</body>
+
+</html>
