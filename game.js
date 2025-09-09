@@ -121,25 +121,39 @@ class RangeImposterGame {
     const qrContainer = document.getElementById("qrContainer");
     if (!qrContainer) return console.error("QR container not found!");
 
-    const shareURL = `show.html?data=${encodeURIComponent(
-      btoa(JSON.stringify(
-        this.players.map(name => ({
-          name,
-          question: this.questionMap[name],
-          answer: this.answers[name]?.number || null
-        }))
-      ))
-    )}`;
+    const data = this.players.map(name => ({
+      name,
+      question: this.questionMap[name],
+      answer: this.answers[name]?.number || null
+    }));
+
+    const BASE_URL = (() => {
+      const { origin, pathname } = window.location;
+
+      // If running from file:///, origin will be "null"
+      if (origin === "null") {
+        // Extract folder path from pathname
+        const pathParts = pathname.split("/");
+        pathParts.pop(); // remove current file (e.g. index.html)
+        return "file:///" + pathParts.join("/") + "/";
+      }
+
+      // If hosted (e.g. GitHub Pages), use origin + path
+      return origin + pathname.replace(/index\.html$/, "");
+    })();
+
+    const encoded = encodeURIComponent(btoa(JSON.stringify(data)));
+    const shareURL = `${BASE_URL}show.html?data=${encoded}`;
 
     qrContainer.innerHTML = "";
-    const link = document.createElement("a");
-    link.href = shareURL;
-    link.textContent = "View Shared Answers";
-    link.target = "_blank";
-    link.style.display = "inline-block";
-    link.style.marginTop = "1em";
-    link.style.fontWeight = "bold";
-    qrContainer.appendChild(link);
+
+    if (typeof QRCode !== "undefined") {
+      const canvas = document.createElement("canvas");
+      qrContainer.appendChild(canvas);
+      QRCode.toCanvas(canvas, shareURL, error => {
+        if (error) console.error("QR generation failed:", error);
+      });
+    }
   }
 
   revealQuestions() {
