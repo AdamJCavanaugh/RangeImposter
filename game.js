@@ -144,6 +144,7 @@ class RangeImposterGame {
 
     const encoded = encodeURIComponent(btoa(JSON.stringify(data)));
     const shareURL = `${BASE_URL}show.html?data=${encoded}`;
+    console.log("Share URL:", shareURL);
 
     qrContainer.innerHTML = "";
 
