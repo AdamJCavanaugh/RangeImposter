@@ -1,41 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Range Imposter Answers</title>
-    <link rel="stylesheet" href="style.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Range Imposter Answers</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-
 <body>
-    <h1>Range Imposter</h1>
-    <div id="answers">
-        <h2>Answers Revealed</h2>
-        <div id="answerGrid"></div>
-    </div>
+  <h1>Range Imposter Answers</h1>
+  <div id="answers">
+    <h2>Answers Revealed</h2>
+    <div id="answerGrid"></div>
+    <button id="revealBtn">Reveal Questions</button>
+  </div>
 
-    <script src="renderAnswers.js"></script>
-    <script>
-        const raw = new URLSearchParams(window.location.search).get("data");
+  <script src="renderAnswers.js"></script>
+  <script>
+    const raw = new URLSearchParams(window.location.search).get("data");
+    const grid = document.getElementById("answerGrid");
+    const revealBtn = document.getElementById("revealBtn");
 
-        if (!raw) {
-            document.getElementById("answerGrid").textContent = "No data found in URL.";
-        } else {
-            try {
-                const base64 = decodeURIComponent(raw);
-                const json = atob(base64);
-                const data = JSON.parse(json);
+    let data = [];
 
-                if (!Array.isArray(data)) throw new Error("Expected an array");
+    if (!raw) {
+      grid.textContent = "No data found in URL.";
+      revealBtn.style.display = "none";
+    } else {
+      try {
+        const base64 = decodeURIComponent(raw);
+        const json = atob(base64);
+        data = JSON.parse(json);
 
-                renderAnswers(data);
-            } catch (err) {
-                console.error("Decoding failed:", err);
-                document.getElementById("answerGrid").textContent = "Invalid data format.";
-            }
-        }
-    </script>
+        if (!Array.isArray(data)) throw new Error("Expected an array");
+
+        // Initial render: just names and answers
+        data.forEach(({ name, answer }) => {
+          const entry = document.createElement("div");
+          entry.className = "entry";
+          entry.textContent = `${name}: ${answer}`;
+          grid.appendChild(entry);
+        });
+      } catch (err) {
+        console.error("Decoding failed:", err);
+        grid.textContent = "Invalid data format.";
+        revealBtn.style.display = "none";
+      }
+    }
+
+    // Step 2: Reveal questions grouped by column
+    revealBtn.onclick = () => {
+      grid.innerHTML = "";
+
+      // Optional: label questions as A/B if there are exactly 2
+      const uniqueQuestions = [...new Set(data.map(d => d.question))];
+      const questionLabels = {};
+      if (uniqueQuestions.length === 2) {
+        questionLabels[uniqueQuestions[0]] = "Question A";
+        questionLabels[uniqueQuestions[1]] = "Question B";
+      }
+
+      renderAnswers(data, "answerGrid", questionLabels);
+      revealBtn.style.display = "none";
+    };
+  </script>
 </body>
-
 </html>
