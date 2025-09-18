@@ -9,32 +9,77 @@
 </head>
 
 <body>
-    <h1>Range Imposter</h1>
+    <h1>Range Imposter Answers</h1>
     <div id="answers">
         <h2>Answers Revealed</h2>
         <div id="answerGrid"></div>
+        <button id="revealBtn">Reveal Questions</button>
     </div>
+
+    <button id="newQuestionBtn" style="display:none;">New Questions</button>
+    <button id="newGameBtn" style="display:none;">New Game</button>
 
     <script src="renderAnswers.js"></script>
     <script>
         const raw = new URLSearchParams(window.location.search).get("data");
+        const grid = document.getElementById("answerGrid");
+        const revealBtn = document.getElementById("revealBtn");
+
+        let data = [];
 
         if (!raw) {
-            document.getElementById("answerGrid").textContent = "No data found in URL.";
+            grid.textContent = "No data found in URL.";
+            revealBtn.style.display = "none";
         } else {
             try {
                 const base64 = decodeURIComponent(raw);
                 const json = atob(base64);
-                const data = JSON.parse(json);
+                data = JSON.parse(json);
 
                 if (!Array.isArray(data)) throw new Error("Expected an array");
 
-                renderAnswers(data);
+                // Initial render: just names and answers
+                data.forEach(({ name, answer }) => {
+                    const entry = document.createElement("div");
+                    entry.className = "entry";
+                    entry.textContent = `${name}: ${answer}`;
+                    grid.appendChild(entry);
+                });
             } catch (err) {
                 console.error("Decoding failed:", err);
-                document.getElementById("answerGrid").textContent = "Invalid data format.";
+                grid.textContent = "Invalid data format.";
+                revealBtn.style.display = "none";
             }
         }
+
+        // Step 2: Reveal questions grouped by column
+        revealBtn.onclick = () => {
+            grid.innerHTML = "";
+
+            const uniqueQuestions = [...new Set(data.map(d => d.question))];
+            const questionLabels = {};
+            if (uniqueQuestions.length === 2) {
+                questionLabels[uniqueQuestions[0]] = "Question A";
+                questionLabels[uniqueQuestions[1]] = "Question B";
+            }
+
+            renderAnswers(data, "answerGrid", questionLabels);
+            revealBtn.style.display = "none";
+
+            // ✅ Show the new buttons
+            document.getElementById("newQuestionBtn").style.display = "inline-block";
+            document.getElementById("newGameBtn").style.display = "inline-block";
+        };
+
+        document.getElementById("newQuestionBtn").onclick = () => {
+            const names = data.map(d => d.name);
+            const encodedNames = encodeURIComponent(JSON.stringify(names));
+            window.location.href = `index.html?players=${encodedNames}`;
+        };
+
+        document.getElementById("newGameBtn").onclick = () => {
+            window.location.href = "index.html";
+        };
     </script>
 </body>
 

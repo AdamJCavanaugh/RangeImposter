@@ -117,33 +117,33 @@ class RangeImposterGame {
     }
   }
 
+  buildShareURL(players, questionMap, answers) {
+    const data = players.map(name => ({
+      name,
+      question: questionMap[name],
+      answer: answers[name]?.number || null
+    }));
+
+    const encoded = encodeURIComponent(btoa(JSON.stringify(data)));
+
+    const base =
+      window.location.origin === "null"
+        ? "file://" + window.location.pathname.replace(/index\.html$/, "")
+        : window.location.origin + window.location.pathname.replace(/index\.html$/, "");
+
+    return `${base}show.html?data=${encoded}`;
+  }
+
+  showAnswers() {
+    const shareURL = this.buildShareURL(this.players, this.questionMap, this.answers);
+    window.location.href = shareURL;
+  }
+
   shareCode() {
     const qrContainer = document.getElementById("qrContainer");
     if (!qrContainer) return console.error("QR container not found!");
 
-    const data = this.players.map(name => ({
-      name,
-      question: this.questionMap[name],
-      answer: this.answers[name]?.number || null
-    }));
-
-    const BASE_URL = (() => {
-      const { origin, pathname } = window.location;
-
-      // If running from file:///, origin will be "null"
-      if (origin === "null") {
-        // Extract folder path from pathname
-        const pathParts = pathname.split("/");
-        pathParts.pop(); // remove current file (e.g. index.html)
-        return "file:///" + pathParts.join("/") + "/";
-      }
-
-      // If hosted (e.g. GitHub Pages), use origin + path
-      return origin + pathname.replace(/index\.html$/, "");
-    })();
-
-    const encoded = encodeURIComponent(btoa(JSON.stringify(data)));
-    const shareURL = `${BASE_URL}show.html?data=${encoded}`;
+    const shareURL = this.buildShareURL(this.players, this.questionMap, this.answers);
 
     qrContainer.innerHTML = "";
 
@@ -154,6 +154,8 @@ class RangeImposterGame {
         if (error) console.error("QR generation failed:", error);
       });
     }
+
+    console.log("Full share URL:", shareURL);
   }
 
   revealQuestions() {
@@ -206,3 +208,17 @@ class RangeImposterGame {
 }
 
 const game = new RangeImposterGame();
+
+const preload = new URLSearchParams(window.location.search).get("players");
+if (preload) {
+  try {
+    const names = JSON.parse(decodeURIComponent(preload));
+    if (Array.isArray(names)) {
+      game.players = names;
+      game.updateNameList();
+      game.startGame();
+    }
+  } catch (err) {
+    console.error("Failed to preload players:", err);
+  }
+}
