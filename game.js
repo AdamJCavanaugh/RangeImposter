@@ -208,3 +208,17 @@ class RangeImposterGame {
 }
 
 const game = new RangeImposterGame();
+
+const preload = new URLSearchParams(window.location.search).get("players");
+if (preload) {
+  try {
+    const names = JSON.parse(decodeURIComponent(preload));
+    if (Array.isArray(names)) {
+      game.players = names;
+      game.updateNameList();
+      game.startGame();
+    }
+  } catch (err) {
+    console.error("Failed to preload players:", err);
+  }
+}

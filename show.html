@@ -16,6 +16,8 @@
         <button id="revealBtn">Reveal Questions</button>
     </div>
 
+    <button id="newQuestionBtn">New Question</button>
+
     <script src="renderAnswers.js"></script>
     <script>
         const raw = new URLSearchParams(window.location.search).get("data");
@@ -63,6 +65,16 @@
 
             renderAnswers(data, "answerGrid", questionLabels);
             revealBtn.style.display = "none";
+        };
+
+        document.getElementById("newQuestionBtn").onclick = () => {
+            if (!data || !Array.isArray(data)) return;
+
+            const names = data.map(d => d.name);
+            const encodedNames = encodeURIComponent(JSON.stringify(names));
+
+            // Redirect to index.html with names preloaded
+            window.location.href = `index.html?players=${encodedNames}`;
         };
     </script>
 </body>
