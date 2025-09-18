@@ -16,7 +16,8 @@
         <button id="revealBtn">Reveal Questions</button>
     </div>
 
-    <button id="newQuestionBtn">New Question</button>
+    <button id="newQuestionBtn" style="display:none;">New Questions</button>
+    <button id="newGameBtn" style="display:none;">New Game</button>
 
     <script src="renderAnswers.js"></script>
     <script>
@@ -55,7 +56,6 @@
         revealBtn.onclick = () => {
             grid.innerHTML = "";
 
-            // Optional: label questions as A/B if there are exactly 2
             const uniqueQuestions = [...new Set(data.map(d => d.question))];
             const questionLabels = {};
             if (uniqueQuestions.length === 2) {
@@ -65,16 +65,20 @@
 
             renderAnswers(data, "answerGrid", questionLabels);
             revealBtn.style.display = "none";
+
+            // ✅ Show the new buttons
+            document.getElementById("newQuestionBtn").style.display = "inline-block";
+            document.getElementById("newGameBtn").style.display = "inline-block";
         };
 
         document.getElementById("newQuestionBtn").onclick = () => {
-            if (!data || !Array.isArray(data)) return;
-
             const names = data.map(d => d.name);
             const encodedNames = encodeURIComponent(JSON.stringify(names));
-
-            // Redirect to index.html with names preloaded
             window.location.href = `index.html?players=${encodedNames}`;
+        };
+
+        document.getElementById("newGameBtn").onclick = () => {
+            window.location.href = "index.html";
         };
     </script>
 </body>
